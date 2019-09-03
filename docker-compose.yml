@@ -1,0 +1,26 @@
+version: '3.3'
+
+services:
+    mongodb:
+        image: mongo:latest
+        container_name: mongodb
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: admin
+            MONGO_INITDB_ROOT_PASSWORD: admin
+            MONGO_INITDB_DATABASE: some_db
+        ports:
+            - 27017:27017
+        volumes:
+            - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+            - ./db:/data/db
+
+    server:
+        build: .
+        image: serwer_webhook:latest
+        container_name: serwer_webhook
+        restart: always
+        
+        ports:
+            - 8080:8080
+
