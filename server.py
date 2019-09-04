@@ -23,7 +23,7 @@ def clean_rows(di):
 
 
 async def write_to_mongo(li_ev_clean):
-    result = await db.new.insert_many(li_ev_clean)
+    result = await db["new"].insert_many(li_ev_clean)
 
 
 def clean_dom(di):
@@ -40,11 +40,10 @@ async def processing(request):
     li_ev_to_send = []
 
     data = await request.read()
-
     message = data.decode("utf-8")
-    print(message)
     code_obj = eval(message)
-    print(code_obj)
+    logger.info("read request, eval")
+
     country_dom_dict = clean_dom(config.COUNTRY_DOM_DICT)
     error_dom = config.ERROR_DOM
     depr_event = config.DEPRECATED_EVENTS
@@ -66,17 +65,18 @@ async def processing(request):
                                   "body": json.dumps(code_obj, indent=4)
                                   }
                                  )
-
-
+    logger.info("changed list to write")
     await write_to_mongo(li_ev_clean)
     rs = (grequests.post(i["dom"], data=i["body"]) for i in li_ev_to_send)
+    logger.info("sent requests to specific domains")
     grequests.map(rs)
     return web.Response(text=json.dumps(True), status=200)
 
 
 if __name__ == "__main__":
-
-    client = motor.motor_asyncio.AsyncIOMotorClient('mongodb://admin:admin@mongodb:27017/some_db?authSource=admin')
+    logger.info("connecting to mongo")
+    mongo_url = 'mongodb://admin:admin@mongodb:27017/some_db?authSource=admin'
+    client = motor.motor_asyncio.AsyncIOMotorClient(mongo_url)
     db = client["some_db"]
 
     app = web.Application()
