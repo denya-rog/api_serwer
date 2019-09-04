@@ -10,3 +10,7 @@ db.createUser(
             ]
         }
 );
+
+db.createCollection("new");
+db.students.insertOne({ name: "Jon", age: "20" });
+

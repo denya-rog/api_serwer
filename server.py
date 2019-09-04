@@ -23,7 +23,7 @@ def clean_rows(di):
 
 
 async def write_to_mongo(li_ev_clean):
-    result = await db.test_collection.insert_many(li_ev_clean)
+    result = await db.new.insert_many(li_ev_clean)
 
 
 def clean_dom(di):
@@ -41,7 +41,6 @@ async def processing(request):
 
     data = await request.read()
 
-    # print(json.JSONDecoder(data))
     message = data.decode("utf-8")
     print(message)
     code_obj = eval(message)
@@ -51,8 +50,6 @@ async def processing(request):
     depr_event = config.DEPRECATED_EVENTS
     deprecated_fields = config.DEPRECATED_FIELDS
 
-    #if "ff" in code_obj.keys():
-    #    await asyncio.sleep(15)
 
     if isinstance(code_obj, list):
         for i in code_obj:
@@ -72,15 +69,15 @@ async def processing(request):
 
 
     await write_to_mongo(li_ev_clean)
-    # await cl_socket(writer, ret_dict)
     rs = (grequests.post(i["dom"], data=i["body"]) for i in li_ev_to_send)
     grequests.map(rs)
     return web.Response(text=json.dumps(True), status=200)
 
 
 if __name__ == "__main__":
-    client = motor.motor_asyncio.AsyncIOMotorClient(host='mongodb', port=27017)
-    db = client.some_db
+
+    client = motor.motor_asyncio.AsyncIOMotorClient('mongodb://admin:admin@mongodb:27017/some_db?authSource=admin')
+    db = client["some_db"]
 
     app = web.Application()
     app.router.add_get('/', handle)
